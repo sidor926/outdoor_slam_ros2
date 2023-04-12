@@ -7,12 +7,14 @@
 #    docker build -t ros-humble-slam .
 #    docker run -it --rm ros-humble-slam
 # Once you're in the container, you can run the following commands to build the Outdoor ROS repos -
-# clone the outdoor_ros2_slam repo. This repo contains the ROS2 packages for the SLAM project (#TODO: Automate this step/make it a part of the Dockerfile)
+
+# #TODO: clone the outdoor_ros2_slam repo. This repo contains the ROS2 packages for the SLAM project (#TODO: Automate this step/make it a part of the Dockerfile)
 # bazel build //... --define NO_DREAL=ON -j 1 
 # Limiting the jobs just because you might run out of memory as the build is memory intensive, and it's painful to 
 # to restart the whole thing again. Feel free to change it. Make sure your docker settings allow upto 8gb ram. 
 
 # Use the official Ubuntu 22.04 as the base image
+
 FROM ubuntu:22.04
 
 # Set environment variables
@@ -25,11 +27,26 @@ RUN apt-get update && \
     apt-get install -y tzdata
 
 # Install necessary dependencies for the script
-RUN apt-get install -y wget unzip curl software-properties-common lsb-release python3-pip
+RUN apt-get install -y wget unzip curl software-properties-common lsb-release python3-pip sudo
 
 # Install npm
 RUN apt-get install -y npm
 
+# Set build arguments for the new user's name and password
+ARG USERNAME
+ARG PASSWORD
+
+# Create a new user with sudo permissions
+RUN useradd -m -s /bin/bash $USERNAME && \
+    echo "$USERNAME:$PASSWORD" | chpasswd && \
+    usermod -aG sudo $USERNAME
+
+# Set the working directory to the new user's home directory
+WORKDIR /home/$USERNAME
+
+# Set ownership and permissions for the new user's home directory
+RUN chown -R $USERNAME:$USERNAME /home/$USERNAME && \
+    chmod 700 /home/$USERNAME
 # Install Bazelisk using npm
 RUN npm install -g @bazel/bazelisk
 
@@ -72,3 +89,6 @@ RUN wget -q -O /tmp/drake-setup.zip https://github.com/RobotLocomotion/drake/arc
 
 # Set the entrypoint to source ROS setup.bash and run a bash shell
 ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && exec /bin/bash -i"]
+
+
+

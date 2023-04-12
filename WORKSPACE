@@ -145,7 +145,7 @@ ros2_local_repository(
 ## Additional Libraries ## See list here: https://github.com/mjbots/bazel_deps
 load("//tools/workspace:default.bzl", "add_default_repositories")
 add_default_repositories()
-load("@com_github_mjbots_bazel_deps//tools/workspace:default.bzl",
+load("@com_github_sidor926_bazel_deps//tools/workspace:default.bzl",
      bazel_deps_add = "add_default_repositories")
 bazel_deps_add()
 
